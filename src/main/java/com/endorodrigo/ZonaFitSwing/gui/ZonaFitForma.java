@@ -2,7 +2,6 @@ package com.endorodrigo.ZonaFitSwing.gui;
 
 import com.endorodrigo.ZonaFitSwing.modelo.Cliente;
 import com.endorodrigo.ZonaFitSwing.servicio.ClienteServicio;
-import com.endorodrigo.ZonaFitSwing.servicio.IClienteServicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +9,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 @Component
 public class ZonaFitForma extends JFrame {
@@ -23,6 +24,7 @@ public class ZonaFitForma extends JFrame {
     private JButton limpiarButton;
     ClienteServicio clientService;
     private DefaultTableModel tablaModeloClientes;
+    private Integer IdCliente;
 
 
     @Autowired
@@ -30,6 +32,14 @@ public class ZonaFitForma extends JFrame {
         this.clientService = clienteServicio;
         iniciarForma();
         guardarButton.addActionListener(e -> crearCliente());
+        clientesTabla.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                CargarClienteSelecionado();
+            }
+        });
+        eliminarButton.addActionListener(e -> eliminarCliente());
     }
 
 
@@ -86,19 +96,49 @@ public class ZonaFitForma extends JFrame {
         var nombre = nombreTexto.getText();
         var apellido = apellidoTexto.getText();
         var membresia = Integer.parseInt(membresiaTexto.getText());
-        var cliente = new Cliente();
-        cliente.setNombre(nombre);
-        cliente.setApellido(apellido);
-        cliente.setMembresia(membresia);
+        var cliente = new Cliente(this.IdCliente, nombre, apellido, membresia);
         this.clientService.guardarCliente(cliente);
-        JOptionPane.showMessageDialog(null,"Cliente guardado correctamente");
+        if (this.IdCliente == null) {
+            JOptionPane.showMessageDialog(null,"Cliente guardado correctamente");
+        }else{
+            JOptionPane.showMessageDialog(null,"Cliente Actualizado correctamente");
+        }
         LimpiarFormulario();
         listarClientes();
     }
 
     private void LimpiarFormulario(){
+        this.IdCliente = null;
         nombreTexto.setText("");
         apellidoTexto.setText("");
         membresiaTexto.setText("");
+    }
+
+    public void CargarClienteSelecionado(){
+        var seleccionado = this.clientesTabla.getSelectedRow();
+        if(seleccionado != -1){
+            var id = this.clientesTabla.getModel().getValueAt(seleccionado,0);
+            this.IdCliente = (Integer) id;
+            nombreTexto.setText(this.clientesTabla.getModel().getValueAt(seleccionado,1).toString());
+            apellidoTexto.setText(this.clientesTabla.getModel().getValueAt(seleccionado,2).toString());
+            membresiaTexto.setText(this.clientesTabla.getModel().getValueAt(seleccionado,3).toString());
+
+        }
+    }
+
+    public void eliminarCliente(){
+        var seleccionado = this.clientesTabla.getSelectedRow();
+        if(seleccionado != -1){
+            var idcliente = this.clientesTabla.getModel().getValueAt(seleccionado,0);
+            this.IdCliente = (Integer) idcliente;
+            var data = new Cliente();
+            data.setId(this.IdCliente);
+            clientService.eliminarCliente(data);
+            JOptionPane.showMessageDialog(null,"Cliente eliminado correctamente");
+            listarClientes();
+            LimpiarFormulario();
+        }else {
+            JOptionPane.showMessageDialog(null,"Seleccione un cliente");
+        }
     }
 }
