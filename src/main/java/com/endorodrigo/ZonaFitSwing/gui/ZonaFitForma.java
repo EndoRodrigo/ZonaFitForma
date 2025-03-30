@@ -40,6 +40,7 @@ public class ZonaFitForma extends JFrame {
             }
         });
         eliminarButton.addActionListener(e -> eliminarCliente());
+        limpiarButton.addActionListener(e -> LimpiarFormulario());
     }
 
 
@@ -112,6 +113,7 @@ public class ZonaFitForma extends JFrame {
         nombreTexto.setText("");
         apellidoTexto.setText("");
         membresiaTexto.setText("");
+        this.clientesTabla.getSelectionModel().clearSelection();
     }
 
     public void CargarClienteSelecionado(){
